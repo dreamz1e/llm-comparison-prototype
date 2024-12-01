@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
-    "@babel/core": "^7.26.0",
     "@google/generative-ai": "^0.21.0",
-    "babel-loader": "^9.2.1",
     "next": "15.0.3",
     "openai": "^4.73.1",
     "react": "19.0.0-rc-66855b96-20241106",
