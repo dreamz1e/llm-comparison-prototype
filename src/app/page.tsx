@@ -5,8 +5,6 @@ import { Message, SystemPrompts } from '@/types/messages';
 import Settings from '@/components/Settings';
 import { systemPrompts } from '@/app/constants/systemPrompts';
 import { models } from '@/app/constants/models';
-import FileUpload from '@/components/FileUpload';
-import { ProcessedFile } from '@/types/fileProcessing';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -15,13 +13,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [localSystemPrompts, setSystemPrompts] = useState<SystemPrompts>(systemPrompts);
-  const [uploadedFiles, setUploadedFiles] = useState<ProcessedFile[]>([]);
-  const [codeContext, setCodeContext] = useState<string>('');
-
-  const handleFilesProcessed = (formattedContent: string, files: ProcessedFile[]) => {
-    setUploadedFiles(files);
-    setCodeContext(formattedContent);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +39,7 @@ export default function Home() {
           model: selectedModel,
           systemPrompt: localSystemPrompts[Object.keys(models).find(provider => 
             models[provider].includes(selectedModel)
-          ) || 'OpenAI'],
-          codeContext: codeContext
+          ) || 'OpenAI']
         }),
       });
 
@@ -64,7 +54,6 @@ export default function Home() {
       }]);
     } catch (error) {
       console.error('Error:', error);
-      // You could add error handling UI here
     } finally {
       setIsLoading(false);
     }
@@ -93,15 +82,6 @@ export default function Home() {
           >
             Settings
           </button>
-        </div>
-
-        <div className="p-4 border-b">
-          <FileUpload onFilesProcessed={handleFilesProcessed} />
-          {uploadedFiles.length > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
-              {uploadedFiles.length} files uploaded
-            </div>
-          )}
         </div>
 
         <div className="h-[60vh] overflow-y-auto p-4 space-y-4">
