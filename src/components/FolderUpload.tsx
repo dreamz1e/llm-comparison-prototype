@@ -3,7 +3,11 @@
 import { useState, useCallback } from "react";
 import { CodeFile, FolderStructure } from "../types/FileTypes";
 
-const FolderUpload = () => {
+interface FolderUploadProps {
+  onStructureUpdate: (files: CodeFile[]) => void;
+}
+
+const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
   const [folderStructure, setFolderStructure] = useState<FolderStructure>({
     files: [],
   });
@@ -74,6 +78,7 @@ const FolderUpload = () => {
 
     await Promise.all(promises);
     setFolderStructure({ files });
+    onStructureUpdate(files);
   };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -86,14 +91,17 @@ const FolderUpload = () => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
 
-    if (e.dataTransfer.items) {
-      await processFiles(e.dataTransfer.items);
-    }
-  }, []);
+      if (e.dataTransfer.items) {
+        await processFiles(e.dataTransfer.items);
+      }
+    },
+    [onStructureUpdate]
+  );
 
   return (
     <div className="w-full max-w-2xl mx-auto">

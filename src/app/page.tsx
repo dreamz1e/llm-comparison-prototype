@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Message, SystemPrompts } from "@/types/messages";
+import { Message, SystemPrompts, CodeContext } from "@/types/messages";
 import Settings from "@/components/Settings";
 import { systemPrompts } from "@/app/constants/systemPrompts";
 import { models } from "@/app/constants/models";
@@ -15,6 +15,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [localSystemPrompts, setSystemPrompts] =
     useState<SystemPrompts>(systemPrompts);
+  const [codeContext, setCodeContext] = useState<CodeContext>({ files: [] });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +46,7 @@ export default function Home() {
                 models[provider].includes(selectedModel)
               ) || "OpenAI"
             ],
+          codeContext: codeContext.files.length > 0 ? codeContext : undefined,
         }),
       });
 
@@ -65,6 +67,10 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFolderStructureUpdate = (files: CodeContext["files"]) => {
+    setCodeContext({ files });
   };
 
   return (
@@ -141,11 +147,16 @@ export default function Home() {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold text-gray-900">
-              Code Structure Upload
+              Code Structure Analysis
             </h2>
+            {codeContext.files.length > 0 && (
+              <p className="text-sm text-gray-600 mt-1">
+                {codeContext.files.length} files loaded as context
+              </p>
+            )}
           </div>
           <div className="p-4">
-            <FolderUpload />
+            <FolderUpload onStructureUpdate={handleFolderStructureUpdate} />
           </div>
         </div>
       </div>
