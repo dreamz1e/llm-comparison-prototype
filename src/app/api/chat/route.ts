@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ChatApiRequest } from "@/types/messages";
+import { formatLLMResponse } from "@/utils/responseFormatter";
 
 // Initialize API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
         model: model,
         messages: messagesArray as OpenAI.Chat.ChatCompletionMessageParam[],
       });
-      response = completion.choices[0].message.content || "";
+      response = formatLLMResponse(completion.choices[0].message.content || "");
     } else if (model.startsWith("claude")) {
       const messages = [];
 
@@ -68,16 +69,18 @@ export async function POST(request: Request) {
         max_tokens: 1000,
       });
       response =
-        completion.content[0].type === "text" ? completion.content[0].text : "";
+        completion.content[0].type === "text"
+          ? formatLLMResponse(completion.content[0].text)
+          : "";
     } else if (model.startsWith("gemini")) {
       const geminiModel = genAI.getGenerativeModel({ model: "gemini-pro" });
       const prompt = formattedCodeContext
         ? `${formattedCodeContext}\n\n${message}`
         : message;
       const result = await geminiModel.generateContent(prompt);
-      response = result.response.text();
+      response = formatLLMResponse(result.response.text());
     } else if (model.startsWith("llama")) {
-      response = "LLama API implementation pending";
+      response = formatLLMResponse("LLama API implementation pending");
     } else {
       throw new Error("Invalid model selected");
     }

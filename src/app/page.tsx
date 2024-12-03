@@ -6,6 +6,8 @@ import Settings from "@/components/Settings";
 import { systemPrompts } from "@/app/constants/systemPrompts";
 import { models } from "@/app/constants/models";
 import FolderUpload from "@/components/FolderUpload";
+import { MessageFormatter } from "@/utils/messageFormatter";
+import { formatLLMResponse } from "@/utils/responseFormatter";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,10 +56,12 @@ export default function Home() {
 
       if (!response.ok) throw new Error(data.error);
 
+      const formattedResponse = formatLLMResponse(data.response);
+
       setMessages((prev) => [
         ...prev,
         {
-          content: data.response,
+          content: formattedResponse,
           role: "assistant",
           timestamp: new Date().toISOString(),
         },
@@ -117,7 +121,19 @@ export default function Home() {
                     : "bg-gray-100 text-gray-900"
                 }`}
               >
-                {message.content}
+                <div
+                  className={
+                    message.role === "user"
+                      ? ""
+                      : "prose dark:prose-invert max-w-none"
+                  }
+                >
+                  {message.role === "user" ? (
+                    message.content
+                  ) : (
+                    <MessageFormatter content={message.content} />
+                  )}
+                </div>
               </div>
             ))}
             {isLoading && (
