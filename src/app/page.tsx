@@ -73,6 +73,11 @@ export default function Home() {
     setCodeContext({ files });
   };
 
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedModel(e.target.value);
+    setMessages([]);
+  };
+
   return (
     <main className="min-h-screen p-8 bg-gray-100">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-[1600px] mx-auto">
@@ -81,7 +86,7 @@ export default function Home() {
           <div className="p-4 border-b flex justify-between items-center">
             <select
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={handleModelChange}
               className="w-full p-2 border rounded-lg text-gray-900 mr-2"
             >
               {Object.entries(models).map(([provider, modelList]) => (
