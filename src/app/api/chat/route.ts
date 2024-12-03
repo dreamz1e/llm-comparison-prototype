@@ -66,7 +66,7 @@ export async function POST(request: Request) {
           role: msg.role as "user" | "assistant",
           content: msg.content,
         })),
-        max_tokens: 1000,
+        max_tokens: 50000,
       });
       response =
         completion.content[0].type === "text"
