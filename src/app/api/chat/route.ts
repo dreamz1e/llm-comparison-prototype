@@ -6,9 +6,11 @@ import { ChatApiRequest } from "@/types/messages";
 import { formatLLMResponse } from "@/utils/responseFormatter";
 
 // Initialize API clients
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || "",
+});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 
 const formatCodeContext = (
   codeContext?: ChatApiRequest["codeContext"]
