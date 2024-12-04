@@ -64,6 +64,7 @@ export async function POST(request: Request) {
 
       const completion = await anthropic.messages.create({
         model: model,
+        system: systemPrompt,
         messages: messages.map((msg) => ({
           role: msg.role as "user" | "assistant",
           content: msg.content,
