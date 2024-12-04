@@ -84,9 +84,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen p-8 bg-gray-100">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-[1600px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-[1600px] mx-auto">
         {/* Chat Interface */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="col-span-2 bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="p-4 border-b flex justify-between items-center">
             <select
               value={selectedModel}

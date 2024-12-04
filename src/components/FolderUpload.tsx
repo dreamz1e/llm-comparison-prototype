@@ -132,7 +132,7 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Processed Files ({folderStructure.files.length})
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-64 overflow-y-auto">
             {folderStructure.files.map((file, index) => (
               <div
                 key={index}
