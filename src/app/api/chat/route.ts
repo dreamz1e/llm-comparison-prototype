@@ -76,11 +76,25 @@ export async function POST(request: Request) {
           ? formatLLMResponse(completion.content[0].text)
           : "";
     } else if (model.startsWith("gemini")) {
-      const geminiModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const geminiModel = genAI.getGenerativeModel({ model: model });
+      const chat = geminiModel.startChat({
+        history: [
+          {
+            role: "user",
+            parts: [{ text: systemPrompt }],
+          },
+          {
+            role: "model",
+            parts: [{ text: "Understood, I will follow these instructions." }],
+          },
+        ],
+      });
+
       const prompt = formattedCodeContext
         ? `${formattedCodeContext}\n\n${message}`
         : message;
-      const result = await geminiModel.generateContent(prompt);
+
+      const result = await chat.sendMessage(prompt);
       response = formatLLMResponse(result.response.text());
     } else if (model.startsWith("llama")) {
       response = formatLLMResponse("LLama API implementation pending");
