@@ -9,7 +9,7 @@ export const TokenInfo = ({ tokenUtils, role }: TokenInfoProps) => {
   if (!tokenUtils) return null;
 
   return (
-    <div className="text-xs mt-2" style={{ opacity: 0.7 }}>
+    <div className="text-xs mt-2 text-text-secondary">
       {role === "user" ? (
         <span>Prompt tokens: {tokenUtils.promptTokens}</span>
       ) : (

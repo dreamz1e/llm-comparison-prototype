@@ -3,19 +3,55 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 255 255 255;
+  --foreground: 26 26 26;
+  --chat-bg: 255 255 255;
+  --chat-message-bg: 242 242 247;
+  --border-color: 229 229 234;
+  --text-secondary: 108 108 112;
+  --input-bg: 255 255 255;
+  --input-text: 26 26 26;
+  --select-bg: 255 255 255;
+  --select-text: 26 26 26;
+  --select-option-bg: 255 255 255;
+  --select-option-text: 26 26 26;
+  --textarea-bg: 255 255 255;
+  --textarea-text: 26 26 26;
+  --accent-primary: 10 132 255;
+  --accent-secondary: 94 92 230;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+[data-theme='dark'] {
+  --background: 0 0 0;
+  --foreground: 255 255 255;
+  --chat-bg: 28 28 30;
+  --chat-message-bg: 44 44 46;
+  --border-color: 56 56 58;
+  --text-secondary: 152 152 157;
+  --input-bg: 28 28 30;
+  --input-text: 255 255 255;
+  --select-bg: 28 28 30;
+  --select-text: 255 255 255;
+  --select-option-bg: 44 44 46;
+  --select-option-text: 255 255 255;
+  --textarea-bg: 255 255 255;
+  --textarea-text: 26 26 26;
+  --accent-primary: 10 132 255;
+  --accent-secondary: 94 92 230;
+}
+
+@layer components {
+  .dark-gradient {
+    @apply bg-gradient-dark;
+  }
+
+  .vibrancy {
+    @apply backdrop-blur-xl backdrop-saturate-150 bg-opacity-80 bg-chat-bg;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
 }

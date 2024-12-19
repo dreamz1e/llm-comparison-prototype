@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Message, SystemPrompts, CodeContext } from "@/types/messages";
 import Settings from "@/components/Settings";
 import { systemPrompts } from "@/app/constants/systemPrompts";
@@ -8,6 +8,8 @@ import { models } from "@/app/constants/models";
 import FolderUpload from "@/components/FolderUpload";
 import { MessageFormatter } from "@/utils/messageFormatter";
 import { formatLLMResponse } from "@/utils/responseFormatter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { useTheme } from '@/components/ThemeProvider';
 import { TokenInfo } from "@/components/TokenInfo";
 
 export default function Home() {
@@ -16,19 +18,30 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState("gpt-4-turbo");
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [localSystemPrompts, setSystemPrompts] =
-    useState<SystemPrompts>(systemPrompts);
+  const [localSystemPrompts, setLocalSystemPrompts] = useState<SystemPrompts>(systemPrompts);
   const [codeContext, setCodeContext] = useState<CodeContext>({ files: [] });
+  const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const savedPrompts = localStorage.getItem('systemPrompts');
+    if (savedPrompts) {
+      try {
+        const parsedPrompts = JSON.parse(savedPrompts);
+        setLocalSystemPrompts(parsedPrompts);
+      } catch (error) {
+        console.error('Error parsing saved system prompts:', error);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const timestamp = new Date().toISOString();
     const newMessage: Message = {
       content: input,
       role: "user",
-      timestamp: timestamp,
+      timestamp: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -59,25 +72,15 @@ export default function Home() {
 
       const formattedResponse = data.response.message;
 
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        const userMessageIndex = newMessages.findIndex(
-          (msg) => msg.timestamp === timestamp
-        );
-        if (userMessageIndex !== -1) {
-          newMessages[userMessageIndex] = {
-            ...newMessages[userMessageIndex],
-            tokenUtils: data.response.tokenUtils,
-          };
-        }
-        newMessages.push({
+      setMessages((prev) => [
+        ...prev,
+        {
           content: formattedResponse,
           role: "assistant",
           timestamp: new Date().toISOString(),
           tokenUtils: data.response.tokenUtils,
-        });
-        return newMessages;
-      });
+        },
+      ]);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -94,52 +97,77 @@ export default function Home() {
     setMessages([]);
   };
 
+  const handleSystemPromptsChange = (updatedPrompts: SystemPrompts) => {
+    setLocalSystemPrompts(updatedPrompts);
+    
+    try {
+      localStorage.setItem('systemPrompts', JSON.stringify(updatedPrompts));
+    } catch (error) {
+      console.error('Error saving system prompts:', error);
+    }
+  };
+
   return (
-    <main className="min-h-screen p-8 bg-gray-100">
+    <main className="min-h-screen p-8 bg-background transition-colors duration-200">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-[1600px] mx-auto">
         {/* Chat Interface */}
-        <div className="col-span-2 bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="p-4 border-b flex justify-between items-center">
-            <select
-              value={selectedModel}
-              onChange={handleModelChange}
-              className="w-full p-2 border rounded-lg text-gray-900 mr-2"
-            >
-              {Object.entries(models).map(([provider, modelList]) => (
-                <optgroup label={provider} key={provider}>
-                  {modelList.map((model) => (
-                    <option value={model} key={model}>
-                      {model}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300"
-            >
-              Settings
-            </button>
+        <div className="col-span-2 bg-chat-bg dark-gradient rounded-2xl shadow-2xl overflow-hidden border border-border-color/10">
+          {/* Header */}
+          <div className="p-4 border-b border-border-color/10 vibrancy">
+            <div className="flex justify-between items-center">
+              <select
+                value={selectedModel}
+                onChange={handleModelChange}
+                className="w-full p-2.5 border rounded-xl text-select-text bg-select-bg/80 border-border-color/10 mr-2 
+                         [&>optgroup]:bg-select-option-bg [&>optgroup]:text-select-option-text 
+                         [&>optgroup>option]:bg-select-option-bg [&>optgroup>option]:text-select-option-text 
+                         focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary/20
+                         transition-all duration-200"
+              >
+                {Object.entries(models).map(([provider, modelList]) => (
+                  <optgroup label={provider} key={provider} className="text-select-option-text font-medium">
+                    {modelList.map((model) => (
+                      <option value={model} key={model} className="text-select-option-text">
+                        {model}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <button
+                  onClick={toggleTheme}
+                  className="p-2.5 bg-chat-message-bg/80 text-foreground rounded-xl 
+                           hover:bg-chat-message-bg transition-all duration-200 
+                           border border-border-color/10 backdrop-blur-sm"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'light' ? '🌙' : '☀️'}
+                </button>
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="px-4 py-2.5 bg-chat-message-bg/80 text-foreground rounded-xl 
+                           hover:bg-chat-message-bg transition-all duration-200 
+                           border border-border-color/10 backdrop-blur-sm"
+                >
+                  Settings
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="h-[60vh] overflow-y-auto p-4 space-y-4">
+          {/* Messages Container */}
+          <div className="h-[60vh] overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-border-color/20 scrollbar-track-transparent">
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`max-w-[80%] p-3 rounded-lg ${
+                className={`max-w-[80%] p-4 rounded-2xl shadow-lg transition-all duration-200 ${
                   message.role === "user"
-                    ? "ml-auto bg-blue-500 text-white"
-                    : "bg-gray-100 text-gray-900"
+                    ? "ml-auto bg-accent-primary text-white"
+                    : "bg-chat-message-bg/90 text-foreground border border-border-color/10 backdrop-blur-sm"
                 }`}
               >
-                <div
-                  className={
-                    message.role === "user"
-                      ? ""
-                      : "prose dark:prose-invert max-w-none"
-                  }
-                >
+                <div className={message.role === "user" ? "" : "prose dark:prose-invert max-w-none"}>
                   {message.role === "user" ? (
                     message.content
                   ) : (
@@ -153,59 +181,55 @@ export default function Home() {
             ))}
             {isLoading && (
               <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
               </div>
             )}
           </div>
 
-          <div className="p-2 border-t border-gray-200 text-sm text-gray-600">
-            Total Tokens: {messages.reduce((acc, msg) => acc + (msg.tokenUtils?.totalTokens || 0), 0)}
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-4 border-t">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 p-2 border rounded-lg text-gray-900"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
-              >
-                Send
-              </button>
+          {/* Input Area */}
+          <div className="border-t border-border-color/10 vibrancy">
+            <div className="p-3 text-sm text-text-secondary">
+              Total Tokens: {messages.reduce((acc, msg) => acc + (msg.tokenUtils?.totalTokens || 0), 0)}
             </div>
-          </form>
+            <form onSubmit={handleSubmit} className="p-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 p-3 border border-border-color/10 rounded-xl 
+                           bg-input-bg/80 text-input-text placeholder-text-secondary/50
+                           focus:ring-2 focus:ring-accent-primary/20 focus:border-accent-primary/20
+                           transition-all duration-200 backdrop-blur-sm"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-accent-primary text-white rounded-xl
+                           hover:bg-accent-primary/90 disabled:opacity-50 
+                           transition-all duration-200 font-medium"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
         {/* File Upload Section */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Code Structure Analysis
-            </h2>
-            {codeContext.files.length > 0 && (
-              <p className="text-sm text-gray-600 mt-1">
-                {codeContext.files.length} files loaded as context
-              </p>
-            )}
-          </div>
-          <div className="p-4">
-            <FolderUpload onStructureUpdate={handleFolderStructureUpdate} />
-          </div>
+        <div className="lg:col-span-1">
+          <FolderUpload onStructureUpdate={handleFolderStructureUpdate} />
         </div>
       </div>
 
+      {/* Settings Modal */}
       <Settings
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         systemPrompts={localSystemPrompts}
-        onSave={setSystemPrompts}
+        onSave={handleSystemPromptsChange}
       />
     </main>
   );

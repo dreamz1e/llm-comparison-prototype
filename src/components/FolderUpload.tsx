@@ -109,8 +109,8 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
                     ${
                       isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-border-color hover:border-foreground"
                     }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -119,27 +119,27 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
         tabIndex={0}
         aria-label="Drag and drop folder here"
       >
-        <div className="text-lg mb-2 text-gray-900 font-medium">
+        <div className="text-lg mb-2 text-foreground font-medium">
           {isDragging ? "Drop your folder here" : "Drag and drop a folder here"}
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-text-secondary">
           Your folder will be processed and its structure will be analyzed
         </p>
       </div>
 
       {folderStructure.files.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">
             Processed Files ({folderStructure.files.length})
           </h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {folderStructure.files.map((file, index) => (
               <div
                 key={index}
-                className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className="p-3 bg-chat-message-bg rounded-lg border border-border-color"
               >
-                <p className="font-medium text-gray-900">{file.relativePath}</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-medium text-foreground">{file.relativePath}</p>
+                <p className="text-sm text-text-secondary">
                   Language: {file.language}
                 </p>
               </div>
