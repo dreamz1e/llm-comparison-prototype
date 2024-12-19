@@ -2,6 +2,20 @@ export type Message = {
   content: string;
   role: "user" | "assistant";
   timestamp: string;
+  tokenUtils?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+};
+
+export type Response = {
+  message: string;
+  tokenUtils: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 };
 
 export type CodeContext = {

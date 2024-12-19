@@ -8,6 +8,7 @@ import { models } from "@/app/constants/models";
 import FolderUpload from "@/components/FolderUpload";
 import { MessageFormatter } from "@/utils/messageFormatter";
 import { formatLLMResponse } from "@/utils/responseFormatter";
+import { TokenInfo } from "@/components/TokenInfo";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -23,10 +24,11 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    const timestamp = new Date().toISOString();
     const newMessage: Message = {
       content: input,
       role: "user",
-      timestamp: new Date().toISOString(),
+      timestamp: timestamp,
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -51,21 +53,31 @@ export default function Home() {
           codeContext: codeContext.files.length > 0 ? codeContext : undefined,
         }),
       });
-
+      
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.error);
 
-      const formattedResponse = formatLLMResponse(data.response);
+      const formattedResponse = data.response.message;
 
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const userMessageIndex = newMessages.findIndex(
+          (msg) => msg.timestamp === timestamp
+        );
+        if (userMessageIndex !== -1) {
+          newMessages[userMessageIndex] = {
+            ...newMessages[userMessageIndex],
+            tokenUtils: data.response.tokenUtils,
+          };
+        }
+        newMessages.push({
           content: formattedResponse,
           role: "assistant",
           timestamp: new Date().toISOString(),
-        },
-      ]);
+          tokenUtils: data.response.tokenUtils,
+        });
+        return newMessages;
+      });
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -134,6 +146,9 @@ export default function Home() {
                     <MessageFormatter content={message.content} />
                   )}
                 </div>
+                {message.tokenUtils && (
+                  <TokenInfo tokenUtils={message.tokenUtils} role={message.role} />
+                )}
               </div>
             ))}
             {isLoading && (
@@ -141,6 +156,10 @@ export default function Home() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
               </div>
             )}
+          </div>
+
+          <div className="p-2 border-t border-gray-200 text-sm text-gray-600">
+            Total Tokens: {messages.reduce((acc, msg) => acc + (msg.tokenUtils?.totalTokens || 0), 0)}
           </div>
 
           <form onSubmit={handleSubmit} className="p-4 border-t">

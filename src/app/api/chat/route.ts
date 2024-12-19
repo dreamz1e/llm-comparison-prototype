@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ChatApiRequest } from "@/types/messages";
+import { ChatApiRequest, Response } from "@/types/messages";
 import { formatLLMResponse } from "@/utils/responseFormatter";
 
 // Initialize API clients
@@ -36,7 +36,14 @@ export async function POST(request: Request) {
     const { message, model, systemPrompt, codeContext } =
       (await request.json()) as ChatApiRequest;
     const formattedCodeContext = formatCodeContext(codeContext);
-    let response: string;
+    const response: Response = {
+      message: "",
+      tokenUtils: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+      },
+    };
 
     console.log(model);
     if (model.startsWith("gpt") || model.startsWith("chatgpt")) {
@@ -52,7 +59,12 @@ export async function POST(request: Request) {
         model: model,
         messages: messagesArray as OpenAI.Chat.ChatCompletionMessageParam[],
       });
-      response = formatLLMResponse(completion.choices[0].message.content || "");
+      response.message = formatLLMResponse(completion.choices[0].message.content || "");
+      response.tokenUtils = {
+        promptTokens: completion.usage?.prompt_tokens || 0,
+        completionTokens: completion.usage?.completion_tokens || 0,
+        totalTokens: completion.usage?.total_tokens || 0,
+      };
     } else if (model.startsWith("claude")) {
       const messages = [];
 
@@ -71,10 +83,15 @@ export async function POST(request: Request) {
         })),
         max_tokens: 8000,
       });
-      response =
+      response.message =
         completion.content[0].type === "text"
           ? formatLLMResponse(completion.content[0].text)
           : "";
+      response.tokenUtils = {
+        promptTokens: completion.usage?.input_tokens || 0,
+        completionTokens: completion.usage?.output_tokens || 0,
+        totalTokens: completion.usage?.input_tokens + completion.usage?.output_tokens || 0,
+      };
     } else if (model.startsWith("gemini")) {
       const geminiModel = genAI.getGenerativeModel({ model: model });
       const chat = geminiModel.startChat({
@@ -95,13 +112,19 @@ export async function POST(request: Request) {
         : message;
 
       const result = await chat.sendMessage(prompt);
-      response = formatLLMResponse(result.response.text());
+      response.message = formatLLMResponse(result.response.text());
+      response.tokenUtils = {
+        promptTokens: result.response.usageMetadata?.promptTokenCount || 0,
+        completionTokens: result.response.usageMetadata?.candidatesTokenCount || 0,
+        totalTokens: result.response.usageMetadata?.totalTokenCount || 0,
+      };
     } else if (model.startsWith("llama")) {
-      response = formatLLMResponse("LLama API implementation pending");
+      response.message = formatLLMResponse("LLama API implementation pending");
     } else {
       throw new Error("Invalid model selected");
     }
 
+    console.log(response);
     return NextResponse.json({ response });
   } catch (error) {
     console.error("Error:", error);
