@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { CodeFile, FolderStructure } from "../types/FileTypes";
+import { FullscreenCode } from "./FullscreenCode";
 
 interface FolderUploadProps {
   onStructureUpdate: (files: CodeFile[]) => void;
@@ -12,6 +13,7 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
     files: [],
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<CodeFile | null>(null);
 
   const getFileLanguage = (fileName: string): string => {
     const extension = fileName.split(".").pop()?.toLowerCase() || "";
@@ -103,6 +105,14 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
     [onStructureUpdate]
   );
 
+  const handleFileClick = (file: CodeFile) => {
+    setSelectedFile(file);
+  };
+
+  const handleCloseFullscreen = () => {
+    setSelectedFile(null);
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div
@@ -136,7 +146,15 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
             {folderStructure.files.map((file, index) => (
               <div
                 key={index}
-                className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
+                onClick={() => handleFileClick(file)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleFileClick(file);
+                  }
+                }}
               >
                 <p className="font-medium text-gray-900">{file.relativePath}</p>
                 <p className="text-sm text-gray-600">
@@ -146,6 +164,14 @@ const FolderUpload = ({ onStructureUpdate }: FolderUploadProps) => {
             ))}
           </div>
         </div>
+      )}
+
+      {selectedFile && (
+        <FullscreenCode
+          code={selectedFile.content}
+          language={selectedFile.language.toLowerCase().split(" ")[0]} // Handle cases like "JavaScript (React)"
+          onClose={handleCloseFullscreen}
+        />
       )}
     </div>
   );
