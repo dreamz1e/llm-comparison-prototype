@@ -40,18 +40,41 @@
   --accent-secondary: 94 92 230;
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root variables remain the same */
+
 @layer components {
+  .theme-transition {
+    @apply transition-all duration-500;
+  }
+  
+  .theme-fade {
+    @apply transition-opacity duration-500;
+  }
+  
+  .theme-scale {
+    @apply transition-transform duration-500;
+  }
+  
   .dark-gradient {
-    @apply bg-gradient-dark;
+    @apply bg-gradient-dark transition-[background-image] duration-500;
   }
 
   .vibrancy {
-    @apply backdrop-blur-xl backdrop-saturate-150 bg-opacity-80 bg-chat-bg;
+    @apply backdrop-blur-xl backdrop-saturate-150 bg-chat-bg/80 
+           transition-[backdrop-filter,background-color] duration-500;
   }
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground theme-transition;
+  }
+  
+  * {
+    @apply transition-colors duration-500;
   }
 }
