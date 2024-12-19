@@ -30,6 +30,12 @@ export default {
       backgroundImage: {
         'gradient-dark': 'linear-gradient(to bottom, rgb(var(--chat-bg)), rgb(var(--background)))',
       },
+      keyframes: {
+        loading: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(200%)' }
+        }
+      },
     },
   },
   plugins: [],

@@ -11,6 +11,7 @@ import { formatLLMResponse } from "@/utils/responseFormatter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { useTheme } from '@/components/ThemeProvider';
 import { TokenInfo } from "@/components/TokenInfo";
+import { LoadingMessage } from "@/components/LoadingMessage";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,6 +22,8 @@ export default function Home() {
   const [localSystemPrompts, setLocalSystemPrompts] = useState<SystemPrompts>(systemPrompts);
   const [codeContext, setCodeContext] = useState<CodeContext>({ files: [] });
   const { theme, toggleTheme } = useTheme();
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [loadingStartTime, setLoadingStartTime] = useState<number>(0);
 
   useEffect(() => {
     const savedPrompts = localStorage.getItem('systemPrompts');
@@ -38,6 +41,10 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    const controller = new AbortController();
+    setAbortController(controller);
+    setLoadingStartTime(Date.now());
+    
     const newMessage: Message = {
       content: input,
       role: "user",
@@ -65,6 +72,7 @@ export default function Home() {
             ],
           codeContext: codeContext.files.length > 0 ? codeContext : undefined,
         }),
+        signal: controller.signal,
       });
       
       const data = await response.json();
@@ -81,10 +89,15 @@ export default function Home() {
           tokenUtils: data.response.tokenUtils,
         },
       ]);
-    } catch (error) {
-      console.error("Error:", error);
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request cancelled');
+      } else {
+        console.error("Error:", error);
+      }
     } finally {
       setIsLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -104,6 +117,12 @@ export default function Home() {
       localStorage.setItem('systemPrompts', JSON.stringify(updatedPrompts));
     } catch (error) {
       console.error('Error saving system prompts:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    if (abortController) {
+      abortController.abort();
     }
   };
 
@@ -180,9 +199,9 @@ export default function Home() {
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
-              </div>
+              <LoadingMessage 
+                onCancel={handleCancel}
+              />
             )}
           </div>
 
